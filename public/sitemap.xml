@@ -1,11 +1,1 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url>
-    <loc>http://localhost:1313/categories/</loc>
-  </url><url>
-    <loc>http://localhost:1313/</loc>
-  </url><url>
-    <loc>http://localhost:1313/tags/</loc>
-  </url>
-</urlset>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url><loc>https://mautops.github.io/approval-kit/api/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/examples/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/getting-started/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/architecture/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/concepts/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/getting-started/installation/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/concepts/template/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/concepts/task/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/concepts/state-machine/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/</loc><lastmod>2025-11-19T00:00:00+00:00</lastmod></url><url><loc>https://mautops.github.io/approval-kit/categories/</loc></url><url><loc>https://mautops.github.io/approval-kit/tags/</loc></url></urlset>

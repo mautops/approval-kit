@@ -1,0 +1,139 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1"><title>快速开始 | Approval Kit 文档</title><meta name=viewport content="width=device-width,minimum-scale=1"><meta name=description content="安装和使用 Approval Kit 的快速指南"><meta name=generator content="Hugo 0.152.2"><meta name=robots content="index, follow"><meta name=author content="Approval Kit Team"><link rel=stylesheet href=/approval-kit/ananke/css/main.min.efe4d852f731d5d1fbb87718387202a97aafd768cdcdaed0662bbe6982e91824.css><link href=/approval-kit/getting-started/index.xml rel=alternate type=application/rss+xml title="Approval Kit 文档"><link href=/approval-kit/getting-started/index.xml rel=feed type=application/rss+xml title="Approval Kit 文档"><link rel=canonical href=https://mautops.github.io/approval-kit/getting-started/><meta property="og:url" content="https://mautops.github.io/approval-kit/getting-started/"><meta property="og:site_name" content="Approval Kit 文档"><meta property="og:title" content="快速开始"><meta property="og:description" content="安装和使用 Approval Kit 的快速指南"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="website"><meta itemprop=name content="快速开始"><meta itemprop=description content="安装和使用 Approval Kit 的快速指南"><meta itemprop=datePublished content="2025-11-19T00:00:00+00:00"><meta itemprop=dateModified content="2025-11-19T00:00:00+00:00"><meta itemprop=wordCount content="224"><meta name=twitter:card content="summary"><meta name=twitter:title content="快速开始"><meta name=twitter:description content="安装和使用 Approval Kit 的快速指南"></head><body class="ma0 avenir bg-near-white production"><header><div class="pb3-m pb6-l bg-black"><nav class="pv3 ph3 ph4-ns" role=navigation><div class="flex-l center items-center justify-between"><a href=/approval-kit/ class="f3 fw2 hover-white white-90 dib no-underline">Approval Kit 文档</a><div class="flex-l items-center"><ul class="pl0 mr3"><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/ title="首页 page">首页</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/getting-started/ title="快速开始 page">快速开始</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/concepts/ title="核心概念 page">核心概念</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/api/ title="API 参考 page">API 参考</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/examples/ title="使用示例 page">使用示例</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white white-90 no-underline" href=/approval-kit/architecture/ title="架构设计 page">架构设计</a></li></ul><div class=ananke-socials></div></div></div></nav><div class="tc-l pv3 ph3 ph4-ns"><h1 class="f2 f-subheadline-l fw2 light-silver mb0 lh-title">快速开始</h1><h2 class="fw1 f5 f3-l white-80 measure-wide-l center lh-copy mt3 mb4">安装和使用 Approval Kit 的快速指南</h2></div></div></header><main class=pb7 role=main><article class="pa3 pa4-ns nested-copy-line-height"><section class="cf ph3 ph5-l pv3 pv4-l f4 tc-l center measure-wide lh-copy nested-links mid-gray"><h2 id=安装>安装</h2><h3 id=使用-go-modules>使用 Go Modules</h3><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>go get github.com/mautops/approval-kit
+</span></span></code></pre></td></tr></table></div></div><h3 id=版本要求>版本要求</h3><ul><li>Go 1.25.4 或更高版本</li></ul><h2 id=基本使用>基本使用</h2><h3 id=1-创建管理器>1. 创建管理器</h3><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/mautops/approval-kit/internal/task&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/mautops/approval-kit/internal/template&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 创建模板管理器</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>templateMgr</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>NewTemplateManager</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 创建任务管理器</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>taskMgr</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>task</span>.<span style=color:#a6e22e>NewTaskManager</span>(<span style=color:#a6e22e>templateMgr</span>, <span style=color:#66d9ef>nil</span>)
+</span></span></code></pre></td></tr></table></div></div><h3 id=2-创建审批模板>2. 创建审批模板</h3><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/mautops/approval-kit/internal/node&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/mautops/approval-kit/internal/template&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>now</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Now</span>()
+</span></span><span style=display:flex><span><span style=color:#a6e22e>tpl</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>Template</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ID</span>:          <span style=color:#e6db74>&#34;simple-approval&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Name</span>:        <span style=color:#e6db74>&#34;简单审批模板&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Description</span>: <span style=color:#e6db74>&#34;单人审批流程&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Version</span>:     <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CreatedAt</span>:   <span style=color:#a6e22e>now</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>UpdatedAt</span>:   <span style=color:#a6e22e>now</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Nodes</span>: <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#f92672>*</span><span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>Node</span>{
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;start&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ID</span>:   <span style=color:#e6db74>&#34;start&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;开始&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Type</span>: <span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>NodeTypeStart</span>,
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;approval&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ID</span>:   <span style=color:#e6db74>&#34;approval&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;审批节点&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Type</span>: <span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>NodeTypeApproval</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Config</span>: <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>ApprovalNodeConfig</span>{
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>Mode</span>: <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>ApprovalModeSingle</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>ApproverConfig</span>: <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>FixedApproverConfig</span>{
+</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>Approvers</span>: []<span style=color:#66d9ef>string</span>{<span style=color:#e6db74>&#34;approver-001&#34;</span>},
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;end&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ID</span>:   <span style=color:#e6db74>&#34;end&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;结束&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Type</span>: <span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>NodeTypeEnd</span>,
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Edges</span>: []<span style=color:#f92672>*</span><span style=color:#a6e22e>template</span>.<span style=color:#a6e22e>Edge</span>{
+</span></span><span style=display:flex><span>        {<span style=color:#a6e22e>From</span>: <span style=color:#e6db74>&#34;start&#34;</span>, <span style=color:#a6e22e>To</span>: <span style=color:#e6db74>&#34;approval&#34;</span>},
+</span></span><span style=display:flex><span>        {<span style=color:#a6e22e>From</span>: <span style=color:#e6db74>&#34;approval&#34;</span>, <span style=color:#a6e22e>To</span>: <span style=color:#e6db74>&#34;end&#34;</span>},
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>templateMgr</span>.<span style=color:#a6e22e>Create</span>(<span style=color:#a6e22e>tpl</span>)
+</span></span></code></pre></td></tr></table></div></div><h3 id=3-创建审批任务>3. 创建审批任务</h3><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;encoding/json&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/mautops/approval-kit/internal/task&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>params</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>json</span>.<span style=color:#a6e22e>RawMessage</span>(<span style=color:#e6db74>`{&#34;amount&#34;: 1000}`</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>tsk</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>taskMgr</span>.<span style=color:#a6e22e>Create</span>(<span style=color:#e6db74>&#34;simple-approval&#34;</span>, <span style=color:#e6db74>&#34;business-001&#34;</span>, <span style=color:#a6e22e>params</span>)
+</span></span></code></pre></td></tr></table></div></div><h3 id=4-提交和审批>4. 提交和审批</h3><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>// 提交任务</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>taskMgr</span>.<span style=color:#a6e22e>Submit</span>(<span style=color:#a6e22e>tsk</span>.<span style=color:#a6e22e>ID</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 审批通过</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>taskMgr</span>.<span style=color:#a6e22e>Approve</span>(<span style=color:#a6e22e>tsk</span>.<span style=color:#a6e22e>ID</span>, <span style=color:#e6db74>&#34;approval&#34;</span>, <span style=color:#e6db74>&#34;approver-001&#34;</span>, <span style=color:#e6db74>&#34;同意&#34;</span>)
+</span></span></code></pre></td></tr></table></div></div><h2 id=下一步>下一步</h2><ul><li>了解<a href=/concepts/>核心概念</a> - 深入理解模板、任务和状态机</li><li>查看<a href=/examples/>使用示例</a> - 25 个实际使用场景</li><li>阅读<a href=/api/>API 参考</a> - 完整的 API 文档</li></ul></section><section class="flex-ns mt5 flex-wrap justify-around"><div class="w-100 w-30-l mb4 relative bg-white"><div class="w-100 mb4 nested-copy-line-height relative bg-white"><div class="mb3 pa4 gray overflow-hidden bg-white"><span class="f6 db">快速开始</span><h1 class="f3 near-black"><a href=/approval-kit/getting-started/installation/ class="link black dim">安装</a></h1><div class="nested-links f5 lh-copy nested-copy-line-height"><h2 id=使用-go-modules>使用 Go Modules</h2><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>go get github.com/mautops/approval-kit
+</span></span></code></pre></td></tr></table></div></div><h2 id=版本要求>版本要求</h2><ul><li>Go 1.25.4 或更高版本</li></ul><h2 id=验证安装>验证安装</h2><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>go list -m github.com/mautops/approval-kit
+</span></span></code></pre></td></tr></table></div></div><h2 id=依赖说明>依赖说明</h2><p>Approval Kit 优先使用 Go 标准库,最小化外部依赖.当前无外部依赖.</p></div><a href=/approval-kit/getting-started/installation/ class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a></div></div></div></section></article></main><footer class="bg-black bottom-0 w-100 pa3" role=contentinfo><div class="flex justify-between"><a class="f4 fw4 hover-white white-70 dn dib-ns pv2 ph3 no-underline" href=https://mautops.github.io/approval-kit/>&copy; Approval Kit 文档 2025</a><div><div class=ananke-socials></div></div></div></footer></body></html>
