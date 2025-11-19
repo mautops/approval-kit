@@ -1,0 +1,619 @@
+---
+alwaysApply: true
+---
+
+# Hugo 文档站开发指南
+
+本文档基于互联网上 10+ 篇 Hugo 文档站相关文章整理而成,为 AI 助手提供 Hugo 文档站开发的完整指导.
+
+## 1. 快速入门
+
+### 1.1 安装 Hugo
+
+- **安装扩展版**: 确保安装 Hugo Extended 版本,以支持高级功能(如 SCSS 编译)
+- **验证安装**: 运行 `hugo version` 确认安装成功
+- **参考资源**:
+  - [Hugo 官方文档 - 快速入门](https://hugo.opendocs.io/getting-started/quick-start/)
+  - [Hugo 中文文档](https://gohugo.com.cn/)
+
+### 1.2 创建新站点
+
+```bash
+# 创建新站点
+hugo new site my-docs-site
+cd my-docs-site
+
+# 初始化 Git 仓库
+git init
+```
+
+### 1.3 选择并安装主题
+
+- **主题选择**: 访问 [Hugo 主题库](https://themes.gohugo.io/) 选择适合文档站的主题
+- **推荐文档主题**:
+  - **Docsy**: Google 开发的文档主题,适合大型文档站
+  - **Learn**: 适合教程和知识库
+  - **Book**: 适合书籍式文档
+  - **Ananke**: 通用主题,适合快速搭建
+
+```bash
+# 使用 Git 子模块添加主题(以 Docsy 为例)
+git submodule add https://github.com/google/docsy.git themes/docsy
+git submodule update --init --recursive
+```
+
+### 1.4 基础配置
+
+在 `hugo.toml` (或 `config.toml`) 中配置:
+
+```toml
+baseURL = 'https://your-site.github.io/'
+languageCode = 'zh-cn'
+title = '文档站点标题'
+theme = 'docsy'
+
+# 启用草稿渲染(开发时)
+buildDrafts = true
+```
+
+## 2. 内容组织与管理
+
+### 2.1 目录结构
+
+Hugo 假定源内容的组织结构与渲染站点的结构相同:
+
+```
+content/
+├── _index.md          # 首页内容
+├── docs/              # 文档章节
+│   ├── _index.md      # 文档首页
+│   ├── getting-started/
+│   │   ├── _index.md
+│   │   └── installation.md
+│   └── advanced/
+│       └── _index.md
+└── about.md           # 关于页面
+```
+
+### 2.2 创建新文档
+
+```bash
+# 创建新文档(自动生成 Front Matter)
+hugo new content/docs/getting-started/installation.md
+
+# 创建带分类的文档
+hugo new content/{section}/filename.md
+```
+
+**注意事项**:
+
+- 新创建的文档默认 `draft = true`,发布前需设置为 `false`
+- 文件名建议使用英文,避免 URL 编码问题
+
+### 2.3 前置元数据 (Front Matter)
+
+每个 Markdown 文件顶部应包含前置元数据:
+
+**YAML 格式**:
+
+```yaml
+---
+title: "文档标题"
+description: "文档描述,用于 SEO"
+date: 2025-11-19
+draft: false
+weight: 10 # 菜单排序权重
+menu:
+  main:
+    parent: "docs" # 父菜单项
+    weight: 10
+tags:
+  - "tag1"
+  - "tag2"
+categories:
+  - "category1"
+---
+```
+
+**TOML 格式**:
+
+```toml
++++
+title = "文档标题"
+description = "文档描述"
+date = 2025-11-19
+draft = false
+weight = 10
++++
+```
+
+## 3. 内容编写规范
+
+### 3.1 Markdown 语法
+
+- 遵循标准 Markdown 语法
+- 使用标题层级组织内容结构
+- 合理使用列表、表格、引用等元素
+
+### 3.2 短代码 (Shortcodes)
+
+Hugo 提供了强大的短代码功能,用于插入复杂元素:
+
+**代码高亮**:
+
+```markdown
+{{< highlight go >}}
+package main
+
+import "fmt"
+
+func main() {
+fmt.Println("Hello, World!")
+}
+{{< /highlight >}}
+```
+
+**提示框** (需主题支持或自定义):
+
+```markdown
+{{< callout note "注意" >}}
+这是一个重要的提示信息.
+{{< /callout >}}
+
+{{< callout warning "警告" >}}
+这是一个警告信息.
+{{< /callout >}}
+```
+
+**图片**:
+
+```markdown
+{{< figure src="/images/example.jpg" title="图片标题" >}}
+```
+
+**折叠内容**:
+
+```markdown
+{{< details "点击展开" >}}
+这里是折叠的内容.
+{{< /details >}}
+```
+
+### 3.3 自定义短代码
+
+在 `layouts/shortcodes/` 目录下创建自定义短代码:
+
+```html
+<!-- layouts/shortcodes/custom.html -->
+<div class="custom-box">{{ .Inner }}</div>
+```
+
+使用:
+
+```markdown
+{{< custom >}}
+自定义内容
+{{< /custom >}}
+```
+
+### 3.4 语法高亮配置
+
+在 `hugo.toml` 中配置语法高亮:
+
+```toml
+[markup]
+  [markup.highlight]
+    style = "monokai"        # 高亮样式
+    lineNos = true           # 显示行号
+    lineNumbersInTable = true
+    noClasses = false
+```
+
+## 4. 菜单配置
+
+### 4.1 主菜单配置
+
+在 `hugo.toml` 中配置菜单:
+
+```toml
+[menu]
+  [[menu.main]]
+    identifier = "docs"
+    name = "文档"
+    url = "/docs/"
+    weight = 1
+  [[menu.main]]
+    identifier = "about"
+    name = "关于"
+    url = "/about/"
+    weight = 2
+```
+
+### 4.2 侧边栏菜单
+
+对于文档主题(如 Docsy),通常通过 Front Matter 自动生成:
+
+```yaml
+---
+menu:
+  docs:
+    parent: "getting-started"
+    weight: 10
+---
+```
+
+## 5. 多语言支持
+
+### 5.1 配置多语言
+
+在 `hugo.toml` 中配置:
+
+```toml
+defaultContentLanguage = "zh-cn"
+
+[languages]
+  [languages.zh-cn]
+    languageName = "简体中文"
+    weight = 1
+    title = "文档站点"
+  [languages.en]
+    languageName = "English"
+    weight = 2
+    title = "Documentation Site"
+```
+
+### 5.2 内容组织
+
+创建对应语言的目录:
+
+```
+content/
+├── zh-cn/
+│   ├── _index.md
+│   └── docs/
+└── en/
+    ├── _index.md
+    └── docs/
+```
+
+### 5.3 翻译文件
+
+在 `i18n/` 目录下创建翻译文件:
+
+```yaml
+# i18n/zh-cn.yaml
+home:
+  other: "首页"
+docs:
+  other: "文档"
+```
+
+## 6. SEO 优化
+
+### 6.1 元数据配置
+
+在每个页面的 Front Matter 中添加 SEO 信息:
+
+```yaml
+---
+title: "页面标题"
+description: "页面描述,用于搜索引擎和社交媒体分享"
+keywords: ["关键词1", "关键词2"]
+---
+```
+
+### 6.2 站点配置
+
+在 `hugo.toml` 中配置:
+
+```toml
+# SEO 配置
+enableRobotsTXT = true
+enableGitInfo = true
+
+# 社交媒体
+[params.social]
+  twitter = "@yourhandle"
+  github = "yourusername"
+```
+
+### 6.3 站点地图
+
+Hugo 自动生成 `sitemap.xml`,确保搜索引擎能正确索引.
+
+## 7. 搜索功能
+
+### 7.1 内置搜索
+
+许多文档主题(如 Docsy)提供内置搜索功能,通常基于:
+
+- **Lunr.js**: 客户端搜索
+- **Algolia**: 第三方搜索服务
+
+### 7.2 配置搜索
+
+在 `hugo.toml` 中启用搜索:
+
+```toml
+[params]
+  [params.search]
+    enable = true
+    type = "lunr"  # 或 "algolia"
+```
+
+## 8. 图片和资源管理
+
+### 8.1 页面捆绑 (Page Bundles)
+
+使用页面捆绑组织相关资源:
+
+```
+content/
+└── posts/
+    └── my-post/
+        ├── index.md
+        ├── image1.jpg
+        └── image2.png
+```
+
+在 Markdown 中引用:
+
+```markdown
+![描述](image1.jpg)
+```
+
+### 8.2 静态资源
+
+将全局静态资源放在 `static/` 目录:
+
+```
+static/
+├── images/
+│   └── logo.png
+└── css/
+    └── custom.css
+```
+
+引用:
+
+```markdown
+![Logo](/images/logo.png)
+```
+
+## 9. 本地预览和调试
+
+### 9.1 启动开发服务器
+
+```bash
+# 启动服务器(包含草稿)
+hugo server -D
+
+# 指定端口
+hugo server -p 1314
+
+# 绑定到所有网络接口
+hugo server --bind 0.0.0.0
+```
+
+### 9.2 实时重载
+
+Hugo 服务器支持实时重载,修改文件后浏览器自动刷新.
+
+### 9.3 构建检查
+
+```bash
+# 生成静态文件(不启动服务器)
+hugo
+
+# 检查构建错误
+hugo --verbose
+```
+
+## 10. GitHub Pages 部署
+
+### 10.1 手动部署
+
+```bash
+# 生成静态文件
+hugo
+
+# 切换到 gh-pages 分支
+git checkout gh-pages
+
+# 复制 public 目录内容到根目录
+cp -r public/* .
+
+# 提交并推送
+git add .
+git commit -m "Update documentation"
+git push origin gh-pages
+```
+
+### 10.2 GitHub Actions 自动部署
+
+创建 `.github/workflows/gh-pages.yml`:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          cname: your-domain.com # 可选: 自定义域名
+```
+
+### 10.3 配置 GitHub Pages
+
+1. 进入仓库 Settings > Pages
+2. Source 选择 `gh-pages` 分支
+3. 保存设置
+
+## 11. 目录生成 (Table of Contents)
+
+### 11.1 自动生成目录
+
+在 Front Matter 中启用:
+
+```yaml
+---
+toc: true
+toc_sticky: true
+---
+```
+
+### 11.2 配置目录参数
+
+在 `hugo.toml` 中配置:
+
+```toml
+[markup]
+  [markup.tableOfContents]
+    startLevel = 2      # 起始标题级别
+    endLevel = 3        # 结束标题级别
+    ordered = false     # 是否使用有序列表
+```
+
+## 12. 样式定制
+
+### 12.1 覆盖主题样式
+
+创建 `assets/css/custom.css`:
+
+```css
+/* 自定义样式 */
+.custom-class {
+  color: #333;
+}
+```
+
+在 `hugo.toml` 中引入:
+
+```toml
+[params]
+  custom_css = ["css/custom.css"]
+```
+
+### 12.2 修改主题模板
+
+复制主题模板到 `layouts/` 目录进行定制:
+
+```bash
+# 复制主题模板
+cp themes/docsy/layouts/_default/baseof.html layouts/_default/
+```
+
+## 13. 最佳实践
+
+### 13.1 内容编写
+
+- **清晰的结构**: 使用合理的标题层级组织内容
+- **简洁明了**: 避免冗长的段落,使用列表和表格
+- **代码示例**: 提供完整、可运行的代码示例
+- **图片说明**: 为图片添加清晰的说明文字
+
+### 13.2 版本控制
+
+- 使用 Git 进行版本控制
+- 提交信息清晰描述变更内容
+- 定期备份源文件和生成的文件
+
+### 13.3 性能优化
+
+- 优化图片大小和格式
+- 使用 Hugo 的 `--minify` 选项压缩输出
+- 启用缓存策略
+
+### 13.4 可访问性
+
+- 使用语义化 HTML
+- 为图片添加 alt 文本
+- 确保颜色对比度符合标准
+- 支持键盘导航
+
+## 14. 常见问题解决
+
+### 14.1 内容不显示
+
+- 检查 `draft` 状态是否为 `false`
+- 确认文件路径和 Front Matter 格式正确
+- 检查构建日志中的错误信息
+
+### 14.2 样式不生效
+
+- 确认主题已正确安装
+- 检查自定义 CSS 路径是否正确
+- 清除浏览器缓存
+
+### 14.3 菜单不显示
+
+- 检查 `hugo.toml` 中的菜单配置
+- 确认 Front Matter 中的菜单配置正确
+- 查看主题文档了解菜单配置方式
+
+## 15. 参考资源
+
+### 15.1 官方文档
+
+- [Hugo 官方文档](https://gohugo.io/documentation/)
+- [Hugo 中文文档](https://gohugo.com.cn/)
+- [Hugo 快速入门](https://hugo.opendocs.io/getting-started/quick-start/)
+
+### 15.2 主题资源
+
+- [Hugo 主题库](https://themes.gohugo.io/)
+- [Docsy 主题文档](https://www.docsy.dev/)
+- [Learn 主题文档](https://learn.netlify.app/)
+
+### 15.3 社区资源
+
+- [Hugo 论坛](https://discourse.gohugo.io/)
+- [Hugo GitHub](https://github.com/gohugoio/hugo)
+- [Hugo 中文社区](https://hugocn.org/)
+
+### 15.4 部署指南
+
+- [Hugo 部署文档](https://hugo.opendocs.io/hosting-and-deployment/)
+- [GitHub Pages 部署](https://gohugo.io/hosting-and-deployment/hosting-on-github/)
+- [Netlify 部署](https://gohugo.io/hosting-and-deployment/hosting-on-netlify/)
+
+## 16. AI 助手使用指南
+
+当为 Hugo 文档站开发时,AI 助手应:
+
+1. **遵循项目结构**: 按照 Hugo 的标准目录结构组织文件
+2. **使用 Front Matter**: 为每个内容文件添加适当的 Front Matter
+3. **利用短代码**: 使用 Hugo 短代码增强内容表现力
+4. **保持一致性**: 确保文档风格和格式一致
+5. **优化 SEO**: 为每个页面添加适当的元数据
+6. **测试预览**: 建议用户使用 `hugo server` 预览效果
+7. **考虑部署**: 提供 GitHub Pages 或其他平台的部署建议
+
+---
+
+**最后更新**: 2025-11-19  
+**基于**: 10+ 篇 Hugo 文档站相关文章整理
