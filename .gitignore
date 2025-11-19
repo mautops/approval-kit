@@ -33,3 +33,5 @@ Thumbs.db
 /bin/
 /dist/
 
+node_modules
+
