@@ -111,5 +111,41 @@ type TaskManager interface {
 	// 返回: 错误信息
 	// 注意: 如果任务已超时,将任务状态转换为 timeout
 	HandleTimeout(id string) error
+
+	// Pause 暂停任务
+	// id: 任务 ID
+	// reason: 暂停原因
+	// 返回: 错误信息
+	// 注意: 只有 pending、submitted、approving 状态可以暂停
+	// 暂停时会记录暂停前的状态,用于恢复时恢复到正确状态
+	Pause(id string, reason string) error
+
+	// Resume 恢复任务
+	// id: 任务 ID
+	// reason: 恢复原因
+	// 返回: 错误信息
+	// 注意: 只有 paused 状态可以恢复
+	// 恢复时会恢复到暂停前的状态(pending、submitted 或 approving)
+	Resume(id string, reason string) error
+
+	// RollbackToNode 回退到指定节点
+	// id: 任务 ID
+	// nodeID: 目标节点 ID
+	// reason: 回退原因
+	// 返回: 错误信息
+	// 注意: 只能回退到已完成的节点
+	// 回退时会清理回退节点之后的审批记录和状态
+	RollbackToNode(id string, nodeID string, reason string) error
+
+	// ReplaceApprover 替换审批人
+	// id: 任务 ID
+	// nodeID: 节点 ID
+	// oldApprover: 原审批人 ID
+	// newApprover: 新审批人 ID
+	// reason: 替换原因
+	// 返回: 错误信息
+	// 注意: 只能替换尚未审批的审批人
+	// 替换后会保留原审批人的审批记录(如果有),新审批人可以继续审批
+	ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error
 }
 

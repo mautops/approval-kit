@@ -140,6 +140,10 @@ type Task struct {
     // 状态信息
     State       TaskState // 当前状态
     CurrentNode string   // 当前节点 ID
+    
+    // 暂停相关字段
+    PausedAt    *time.Time // 暂停时间
+    PausedState TaskState  // 暂停前的状态,用于恢复时恢复到正确状态
 
     // 时间信息
     CreatedAt   time.Time // 创建时间
@@ -150,6 +154,9 @@ type Task struct {
     NodeOutputs map[string]json.RawMessage // 节点 ID -> 节点输出数据
     Approvers   map[string][]string       // 节点 ID -> 审批人列表
     Approvals   map[string]map[string]*Approval // 节点 ID -> 审批人 -> 审批结果
+    
+    // 回退相关字段
+    CompletedNodes []string // 已完成的节点 ID 列表,用于回退操作
 
     // 审批记录
     Records []*Record // 审批记录列表
@@ -157,6 +164,7 @@ type Task struct {
     // 状态变更历史
     StateHistory []*StateChange // 状态变更历史
 }
+```
 
 // TaskState 任务状态
 type TaskState string
@@ -169,6 +177,7 @@ const (
     TaskStateRejected  TaskState = "rejected"  // 已拒绝
     TaskStateCancelled TaskState = "cancelled" // 已取消
     TaskStateTimeout   TaskState = "timeout"   // 已超时
+    TaskStatePaused    TaskState = "paused"    // 已暂停
 )
 
 // Record 审批记录
@@ -260,15 +269,58 @@ type StateMachine interface {
 
 // 状态转换规则
 var stateTransitions = map[TaskState][]TaskState{
-    TaskStatePending:   {TaskStateSubmitted, TaskStateCancelled},
-    TaskStateSubmitted: {TaskStateApproving, TaskStateCancelled},
-    TaskStateApproving: {TaskStateApproved, TaskStateRejected, TaskStateCancelled, TaskStateTimeout},
-    TaskStateApproved:  {}, // 终态
-    TaskStateRejected:  {}, // 终态
-    TaskStateCancelled: {}, // 终态
-    TaskStateTimeout:   {}, // 终态
+    // 待审批状态: 可以提交、取消或暂停
+    TaskStatePending: {
+        TaskStateSubmitted,
+        TaskStateCancelled,
+        TaskStatePaused,
+    },
+    
+    // 已提交状态: 可以进入审批中、取消、撤回或暂停
+    TaskStateSubmitted: {
+        TaskStateApproving,
+        TaskStateCancelled,
+        TaskStatePending, // 撤回
+        TaskStatePaused,
+    },
+    
+    // 审批中状态: 可以批准、拒绝、取消、超时、撤回或暂停
+    TaskStateApproving: {
+        TaskStateApproved,
+        TaskStateRejected,
+        TaskStateCancelled,
+        TaskStateTimeout,
+        TaskStatePending, // 撤回
+        TaskStatePaused,
+    },
+    
+    // 已暂停状态: 可以恢复到暂停前的状态(待审批、已提交或审批中)
+    // 注意: 恢复时需要记录暂停前的状态,恢复到对应状态
+    TaskStatePaused: {
+        TaskStatePending,
+        TaskStateSubmitted,
+        TaskStateApproving,
+    },
+    
+    // 已通过状态: 终态,不允许转换
+    TaskStateApproved: {},
+    
+    // 已拒绝状态: 终态,不允许转换
+    TaskStateRejected: {},
+    
+    // 已取消状态: 终态,不允许转换
+    TaskStateCancelled: {},
+    
+    // 已超时状态: 终态,不允许转换
+    TaskStateTimeout: {},
 }
 ```
+
+**状态转换说明**:
+
+- **暂停操作**: 可以从 `pending`、`submitted`、`approving` 状态暂停到 `paused` 状态
+- **恢复操作**: 从 `paused` 状态恢复时,需要恢复到暂停前的状态.实现时需要记录暂停前的状态信息
+- **回退操作**: `RollbackToNode` 操作可能涉及状态回退,需要根据回退的目标节点状态确定新的任务状态
 
 ### 3.2 状态转换实现
 
@@ -397,6 +449,15 @@ type TaskManager interface {
     Approve(id string, nodeID string, approver string, comment string) error
     Reject(id string, nodeID string, approver string, comment string) error
     Cancel(id string, reason string) error
+    Withdraw(id string, reason string) error
+    Transfer(id string, nodeID string, fromApprover string, toApprover string, reason string) error
+    AddApprover(id string, nodeID string, approver string, reason string) error
+    RemoveApprover(id string, nodeID string, approver string, reason string) error
+    Pause(id string, reason string) error
+    Resume(id string, reason string) error
+    RollbackToNode(id string, nodeID string, reason string) error
+    ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error
+    HandleTimeout(id string) error
     Query(filter *TaskFilter) ([]*Task, error)
 }
 
@@ -435,7 +496,240 @@ type Storage interface {
 }
 ```
 
-## 6. 事件通知机制
+### 5.3 TaskManager 接口完整定义
+
+TaskManager 接口必须包含所有任务操作方法,确保后端 API 可以完整实现所有功能:
+
+```go
+// TaskManager 任务管理接口
+type TaskManager interface {
+    // 基础操作
+    Create(templateID string, businessID string, params json.RawMessage) (*Task, error)
+    Get(id string) (*Task, error)
+    Submit(id string) error
+    Cancel(id string, reason string) error
+    Withdraw(id string, reason string) error
+    
+    // 审批操作
+    Approve(id string, nodeID string, approver string, comment string) error
+    Reject(id string, nodeID string, approver string, comment string) error
+    
+    // 高级操作
+    Transfer(id string, nodeID string, fromApprover string, toApprover string, reason string) error
+    AddApprover(id string, nodeID string, approver string, reason string) error
+    RemoveApprover(id string, nodeID string, approver string, reason string) error
+    ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error
+    
+    // 暂停和恢复
+    Pause(id string, reason string) error
+    Resume(id string, reason string) error
+    
+    // 回退操作
+    RollbackToNode(id string, nodeID string, reason string) error
+    
+    // 超时处理
+    HandleTimeout(id string) error
+    
+    // 查询操作
+    Query(filter *TaskFilter) ([]*Task, error)
+}
+```
+
+## 6. 高级任务操作实现
+
+### 6.1 任务暂停和恢复
+
+#### 6.1.1 暂停操作实现
+
+```go
+// Pause 暂停任务
+func (m *TaskManager) Pause(id string, reason string) error {
+    // 1. 获取任务
+    task, err := m.Get(id)
+    if err != nil {
+        return err
+    }
+    
+    // 2. 验证当前状态允许暂停
+    // 只有 pending、submitted、approving 状态可以暂停
+    if !canPause(task.State) {
+        return ErrInvalidStateTransition
+    }
+    
+    // 3. 记录暂停前的状态
+    pausedState := task.State
+    
+    // 4. 使用状态机转换到 paused 状态
+    newTask, err := m.stateMachine.Transition(task, TaskStatePaused, reason)
+    if err != nil {
+        return err
+    }
+    
+    // 5. 设置暂停相关字段
+    now := time.Now()
+    newTask.PausedAt = &now
+    newTask.PausedState = pausedState
+    
+    // 6. 保存任务
+    // 7. 生成暂停事件
+    
+    return nil
+}
+
+// canPause 检查是否可以暂停
+func canPause(state TaskState) bool {
+    return state == TaskStatePending || 
+           state == TaskStateSubmitted || 
+           state == TaskStateApproving
+}
+```
+
+#### 6.1.2 恢复操作实现
+
+```go
+// Resume 恢复任务
+func (m *TaskManager) Resume(id string, reason string) error {
+    // 1. 获取任务
+    task, err := m.Get(id)
+    if err != nil {
+        return err
+    }
+    
+    // 2. 验证当前状态是 paused
+    if task.State != TaskStatePaused {
+        return ErrInvalidStateTransition
+    }
+    
+    // 3. 获取暂停前的状态
+    targetState := task.PausedState
+    if targetState == "" {
+        // 如果没有记录暂停前状态,默认恢复到 pending
+        targetState = TaskStatePending
+    }
+    
+    // 4. 使用状态机恢复到暂停前的状态
+    newTask, err := m.stateMachine.Transition(task, targetState, reason)
+    if err != nil {
+        return err
+    }
+    
+    // 5. 清除暂停相关字段
+    newTask.PausedAt = nil
+    newTask.PausedState = ""
+    
+    // 6. 保存任务
+    // 7. 生成恢复事件
+    
+    return nil
+}
+```
+
+### 6.2 回退到指定节点
+
+```go
+// RollbackToNode 回退到指定节点
+func (m *TaskManager) RollbackToNode(id string, nodeID string, reason string) error {
+    // 1. 获取任务和模板
+    task, err := m.Get(id)
+    if err != nil {
+        return err
+    }
+    
+    template, err := m.templateMgr.Get(task.TemplateID, task.TemplateVersion)
+    if err != nil {
+        return err
+    }
+    
+    // 2. 验证节点存在且已完成
+    if !contains(task.CompletedNodes, nodeID) {
+        return ErrNodeNotFound
+    }
+    
+    // 3. 验证回退的合法性
+    // 回退的节点必须在当前节点之前
+    if !isNodeBeforeCurrent(task, nodeID, template) {
+        return ErrInvalidRollback
+    }
+    
+    // 4. 清理回退节点之后的审批记录和状态
+    // - 移除回退节点之后的审批记录
+    // - 清除回退节点之后的节点输出数据
+    // - 清除回退节点之后的审批人列表和审批结果
+    
+    // 5. 更新当前节点为回退的目标节点
+    task.CurrentNode = nodeID
+    
+    // 6. 更新任务状态
+    // 根据回退的节点类型确定新的状态
+    targetState := determineStateAfterRollback(task, nodeID, template)
+    newTask, err := m.stateMachine.Transition(task, targetState, reason)
+    if err != nil {
+        return err
+    }
+    
+    // 7. 更新已完成节点列表
+    newTask.CompletedNodes = removeNodesAfter(newTask.CompletedNodes, nodeID)
+    
+    // 8. 保存任务
+    // 9. 生成回退事件
+    
+    return nil
+}
+```
+
+### 6.3 替换审批人
+
+```go
+// ReplaceApprover 替换审批人
+func (m *TaskManager) ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error {
+    // 1. 获取任务
+    task, err := m.Get(id)
+    if err != nil {
+        return err
+    }
+    
+    // 2. 验证当前节点和审批人
+    if task.CurrentNode != nodeID {
+        return ErrInvalidNode
+    }
+    
+    // 3. 验证原审批人在审批人列表中
+    approvers := task.Approvers[nodeID]
+    if !contains(approvers, oldApprover) {
+        return ErrApproverNotFound
+    }
+    
+    // 4. 验证原审批人尚未审批
+    approvals := task.Approvals[nodeID]
+    if approvals != nil && approvals[oldApprover] != nil {
+        return ErrApproverAlreadyApproved
+    }
+    
+    // 5. 替换审批人
+    // - 从审批人列表中移除原审批人
+    // - 添加新审批人
+    // - 保留原审批人的审批记录(如果有)
+    
+    // 6. 生成替换审批人记录
+    record := &Record{
+        ID:        generateID(),
+        TaskID:    id,
+        NodeID:    nodeID,
+        Approver:  oldApprover,
+        Result:    "replace",
+        Comment:   fmt.Sprintf("替换为 %s: %s", newApprover, reason),
+        CreatedAt: time.Now(),
+    }
+    task.Records = append(task.Records, record)
+    
+    // 7. 保存任务
+    // 8. 生成替换审批人事件
+    
+    return nil
+}
+```
+
+## 7. 事件通知机制
 
 ### 6.1 事件定义
 
@@ -462,6 +756,10 @@ const (
     EventTypeTaskRejected   EventType = "task_rejected"
     EventTypeTaskTimeout    EventType = "task_timeout"
     EventTypeTaskCancelled  EventType = "task_cancelled"
+    EventTypeTaskPaused     EventType = "task_paused"
+    EventTypeTaskResumed    EventType = "task_resumed"
+    EventTypeTaskRollback   EventType = "task_rollback"
+    EventTypeApproverReplaced EventType = "approver_replaced"
     EventTypeNodeCompleted  EventType = "node_completed"
 )
 ```
@@ -525,7 +823,7 @@ func (n *EventNotifier) pushWithRetry(handler EventHandler, event Event) error {
 }
 ```
 
-## 7. 并发安全设计
+## 8. 并发安全设计
 
 ### 7.1 任务并发控制
 
@@ -580,7 +878,7 @@ func Transition(task *Task, to TaskState, expectedVersion int64) error {
 }
 ```
 
-## 8. 错误处理
+## 9. 错误处理
 
 ### 8.1 错误定义
 
@@ -614,7 +912,7 @@ func (e *StateTransitionError) Unwrap() error {
 }
 ```
 
-## 9. TDD 开发流程和规范 (不可协商)
+## 10. TDD 开发流程和规范 (不可协商)
 
 ### 9.1 TDD 核心原则
 
@@ -1239,7 +1537,7 @@ func TestDynamicApprover_Fetch(t *testing.T) {
 - 使用表驱动测试减少重复代码
 - 提取测试辅助函数,提高复用性
 
-## 10. 测试策略
+## 11. 测试策略
 
 ### 10.1 单元测试
 
@@ -1306,7 +1604,7 @@ func TestApprovalFlow(t *testing.T) {
 }
 ```
 
-## 11. 性能优化
+## 12. 性能优化
 
 ### 11.1 内存优化
 
@@ -1320,7 +1618,7 @@ func TestApprovalFlow(t *testing.T) {
 - 状态转换使用 channel 串行化处理
 - 事件推送使用 worker pool 模式
 
-## 12. 依赖管理
+## 13. 依赖管理
 
 ### 12.1 标准库优先
 
@@ -1339,7 +1637,7 @@ func TestApprovalFlow(t *testing.T) {
 - 如需更强大的 HTTP 客户端功能,可考虑 `golang.org/x/net/http2`
 - 如需更复杂的条件表达式解析,可考虑轻量级表达式引擎
 
-## 13. 扩展点设计
+## 14. 扩展点设计
 
 ### 13.1 审批模式扩展
 
@@ -1364,7 +1662,7 @@ type ConditionEvaluator interface {
 }
 ```
 
-## 14. 实现优先级
+## 15. 实现优先级
 
 ### Phase 1: 核心功能 (P0)
 
@@ -1386,8 +1684,11 @@ type ConditionEvaluator interface {
 2. 超时处理
 3. 拒绝后跳转
 4. 转交、加签、减签等操作
+5. 任务暂停和恢复
+6. 回退到指定节点
+7. 替换审批人
 
-## 15. 技术选型总结
+## 16. 技术选型总结
 
 | 技术点      | 选型                        | 理由                       |
 | ----------- | --------------------------- | -------------------------- |
@@ -1401,7 +1702,7 @@ type ConditionEvaluator interface {
 | 接口设计    | 小而专注的接口              | 遵循接口隔离原则           |
 | 测试框架    | testing 包                  | 标准库,满足 TDD 需求       |
 
-## 16. 风险评估
+## 17. 风险评估
 
 ### 16.1 技术风险
 
@@ -1414,7 +1715,7 @@ type ConditionEvaluator interface {
 - **过度设计**: 严格遵循 YAGNI 原则,避免过早优化
 - **接口变更**: 遵循语义化版本控制,保证向后兼容
 
-## 17. 后续优化方向
+## 18. 后续优化方向
 
 1. 支持更复杂的条件表达式
 2. 支持并行网关和排他网关

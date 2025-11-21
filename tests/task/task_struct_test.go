@@ -185,3 +185,73 @@ func TestTaskRuntimeData(t *testing.T) {
 	}
 }
 
+// TestTaskPausedFields 验证暂停相关字段
+func TestTaskPausedFields(t *testing.T) {
+	now := time.Now()
+	pausedAt := now.Add(-1 * time.Hour)
+
+	tsk := &task.Task{
+		ID:          "task-001",
+		State:       task.TaskStatePaused,
+		PausedAt:    &pausedAt,
+		PausedState: task.TaskStateApproving,
+	}
+
+	// 验证暂停字段
+	if tsk.PausedAt == nil {
+		t.Error("Task.PausedAt should not be nil")
+	}
+	if tsk.PausedAt != nil && !tsk.PausedAt.Equal(pausedAt) {
+		t.Errorf("Task.PausedAt = %v, want %v", tsk.PausedAt, pausedAt)
+	}
+	if tsk.PausedState != task.TaskStateApproving {
+		t.Errorf("Task.PausedState = %v, want %v", tsk.PausedState, task.TaskStateApproving)
+	}
+}
+
+// TestTaskPausedFieldsZeroValue 验证暂停字段的零值
+func TestTaskPausedFieldsZeroValue(t *testing.T) {
+	var tsk task.Task
+
+	// 验证零值
+	if tsk.PausedAt != nil {
+		t.Errorf("Task zero value PausedAt = %v, want nil", tsk.PausedAt)
+	}
+	if tsk.PausedState != "" {
+		t.Errorf("Task zero value PausedState = %q, want empty string", tsk.PausedState)
+	}
+}
+
+// TestTaskCompletedNodesField 验证已完成节点字段
+func TestTaskCompletedNodesField(t *testing.T) {
+	tsk := &task.Task{
+		ID:             "task-001",
+		CompletedNodes: []string{"node-001", "node-002"},
+	}
+
+	// 验证已完成节点字段
+	if len(tsk.CompletedNodes) != 2 {
+		t.Errorf("Task.CompletedNodes length = %d, want 2", len(tsk.CompletedNodes))
+	}
+	if tsk.CompletedNodes[0] != "node-001" {
+		t.Errorf("Task.CompletedNodes[0] = %q, want %q", tsk.CompletedNodes[0], "node-001")
+	}
+	if tsk.CompletedNodes[1] != "node-002" {
+		t.Errorf("Task.CompletedNodes[1] = %q, want %q", tsk.CompletedNodes[1], "node-002")
+	}
+}
+
+// TestTaskCompletedNodesZeroValue 验证已完成节点字段的零值
+func TestTaskCompletedNodesZeroValue(t *testing.T) {
+	var tsk task.Task
+
+	// 验证零值
+	if tsk.CompletedNodes == nil {
+		// slice 的零值是 nil,这是正常的
+		_ = tsk.CompletedNodes
+	}
+	if tsk.CompletedNodes != nil && len(tsk.CompletedNodes) != 0 {
+		t.Errorf("Task zero value CompletedNodes length = %d, want 0", len(tsk.CompletedNodes))
+	}
+}
+

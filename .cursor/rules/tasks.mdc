@@ -556,6 +556,53 @@ alwaysApply: true
   - [x] Green: 实现 OperationPermissions 配置和验证
   - [x] Refactor: 优化权限控制逻辑
 
+- [x] **17.7 已暂停状态定义** ✅
+
+  - [x] Red: 编写 TaskStatePaused 状态测试
+  - [x] Green: 在 types 包中添加 TaskStatePaused 常量
+  - [x] Refactor: 更新状态文档注释
+
+- [x] **17.8 暂停状态转换规则** ✅
+
+  - [x] Red: 编写暂停状态转换测试
+  - [x] Green: 在状态转换规则中添加暂停相关转换(从 pending/submitted/approving 到 paused,从 paused 恢复)
+  - [x] Refactor: 优化状态转换规则
+
+- [x] **17.9 Task 结构体暂停字段** ✅
+
+  - [x] Red: 编写 Task 暂停字段测试
+  - [x] Green: 在 Task 结构体中添加 PausedAt 和 PausedState 字段
+  - [x] Refactor: 优化字段设计
+
+- [x] **17.10 任务暂停功能** ✅
+
+  - [x] Red: 编写 Pause 方法测试
+  - [x] Green: 在 TaskManager 接口中添加 Pause 方法并实现
+  - [x] Refactor: 优化暂停逻辑,确保状态转换正确,记录暂停前状态
+
+- [x] **17.11 任务恢复功能** ✅
+
+  - [x] Red: 编写 Resume 方法测试
+  - [x] Green: 在 TaskManager 接口中添加 Resume 方法并实现
+  - [x] Refactor: 优化恢复逻辑,确保恢复到暂停前的状态
+
+- [x] **17.12 Task 结构体回退字段** ✅
+
+  - [x] Red: 编写 Task 回退字段测试
+  - [x] Green: 在 Task 结构体中添加 CompletedNodes 字段,用于记录已完成的节点
+  - [x] Refactor: 优化字段设计
+
+- [x] **17.13 回退到指定节点功能** ✅
+
+  - [x] Red: 编写 RollbackToNode 方法测试
+  - [x] Green: 在 TaskManager 接口中添加 RollbackToNode 方法并实现
+  - [x] Refactor: 优化回退逻辑,确保节点状态正确,清理回退节点之后的审批记录
+
+- [x] **17.14 替换审批人功能** ✅
+  - [x] Red: 编写 ReplaceApprover 方法测试
+  - [x] Green: 在 TaskManager 接口中添加 ReplaceApprover 方法并实现
+  - [x] Refactor: 优化替换逻辑,确保审批记录正确保留,新审批人可以继续审批
+
 ### 18. 节点其他配置
 
 - [x] **18.1 审批意见配置** ✅

@@ -18,6 +18,7 @@ func TestStateTransitionsDefined(t *testing.T) {
 		task.TaskStateRejected,
 		task.TaskStateCancelled,
 		task.TaskStateTimeout,
+		task.TaskStatePaused,
 	}
 
 	transitions := statemachine.GetStateTransitions()
@@ -46,6 +47,7 @@ func TestStateTransitionsRules(t *testing.T) {
 			validTos: []task.TaskState{
 				task.TaskStateSubmitted,
 				task.TaskStateCancelled,
+				task.TaskStatePaused,
 			},
 			invalidTos: []task.TaskState{
 				task.TaskStateApproving,
@@ -61,6 +63,7 @@ func TestStateTransitionsRules(t *testing.T) {
 				task.TaskStateApproving,
 				task.TaskStateCancelled,
 				task.TaskStatePending, // 撤回功能允许
+				task.TaskStatePaused,
 			},
 			invalidTos: []task.TaskState{
 				task.TaskStateApproved,
@@ -77,6 +80,7 @@ func TestStateTransitionsRules(t *testing.T) {
 				task.TaskStateCancelled,
 				task.TaskStateTimeout,
 				task.TaskStatePending, // 撤回功能允许
+				task.TaskStatePaused,
 			},
 			invalidTos: []task.TaskState{
 				task.TaskStateSubmitted,
@@ -132,6 +136,22 @@ func TestStateTransitionsRules(t *testing.T) {
 				task.TaskStateApproved,
 				task.TaskStateRejected,
 				task.TaskStateCancelled,
+				task.TaskStatePaused,
+			},
+		},
+		{
+			name: "paused state transitions",
+			from: task.TaskStatePaused,
+			validTos: []task.TaskState{
+				task.TaskStatePending,   // 恢复到 pending
+				task.TaskStateSubmitted, // 恢复到 submitted
+				task.TaskStateApproving, // 恢复到 approving
+			},
+			invalidTos: []task.TaskState{
+				task.TaskStateApproved,
+				task.TaskStateRejected,
+				task.TaskStateCancelled,
+				task.TaskStateTimeout,
 			},
 		},
 	}
@@ -176,6 +196,7 @@ func TestFinalStates(t *testing.T) {
 		task.TaskStateRejected,
 		task.TaskStateCancelled,
 		task.TaskStateTimeout,
+		// TaskStatePaused 不是终态,可以恢复到之前的状态
 	}
 
 	transitions := statemachine.GetStateTransitions()

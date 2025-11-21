@@ -24,6 +24,10 @@ type Task struct {
 	State       types.TaskState // 当前状态
 	CurrentNode string           // 当前节点 ID
 
+	// 暂停相关字段
+	PausedAt    *time.Time      // 暂停时间
+	PausedState types.TaskState // 暂停前的状态,用于恢复时恢复到正确状态
+
 	// 时间信息
 	CreatedAt   time.Time  // 创建时间
 	UpdatedAt   time.Time  // 更新时间
@@ -33,6 +37,9 @@ type Task struct {
 	NodeOutputs map[string]json.RawMessage           // 节点 ID -> 节点输出数据
 	Approvers   map[string][]string                  // 节点 ID -> 审批人列表
 	Approvals   map[string]map[string]*Approval      // 节点 ID -> 审批人 -> 审批结果
+
+	// 回退相关字段
+	CompletedNodes []string // 已完成的节点 ID 列表,用于回退操作
 
 	// 审批记录
 	Records []*Record // 审批记录列表

@@ -82,3 +82,19 @@ func (m *taskManagerImpl) HandleTimeout(id string) error {
 	return nil
 }
 
+func (m *taskManagerImpl) Pause(id string, reason string) error {
+	return nil
+}
+
+func (m *taskManagerImpl) Resume(id string, reason string) error {
+	return nil
+}
+
+func (m *taskManagerImpl) RollbackToNode(id string, nodeID string, reason string) error {
+	return nil
+}
+
+func (m *taskManagerImpl) ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error {
+	return nil
+}
+

@@ -23,7 +23,7 @@ func (r *Record) Validate() error {
 		return fmt.Errorf("record Result is required")
 	}
 	// 验证审批结果类型
-	validResults := []string{"approve", "reject", "transfer", "add_approver", "remove_approver"}
+	validResults := []string{"approve", "reject", "transfer", "add_approver", "remove_approver", "replace"}
 	valid := false
 	for _, validResult := range validResults {
 		if r.Result == validResult {
@@ -32,7 +32,7 @@ func (r *Record) Validate() error {
 		}
 	}
 	if !valid {
-		return fmt.Errorf("invalid record Result: %q, must be one of: approve, reject, transfer, add_approver, remove_approver", r.Result)
+		return fmt.Errorf("invalid record Result: %q, must be one of: approve, reject, transfer, add_approver, remove_approver, replace", r.Result)
 	}
 	// 验证时间
 	if r.CreatedAt.IsZero() {

@@ -14,5 +14,6 @@ const (
 	TaskStateRejected  = types.TaskStateRejected
 	TaskStateCancelled = types.TaskStateCancelled
 	TaskStateTimeout   = types.TaskStateTimeout
+	TaskStatePaused    = types.TaskStatePaused
 )
 

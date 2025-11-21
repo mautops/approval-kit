@@ -36,6 +36,18 @@ const (
 	// EventTypeTaskWithdrawn 任务撤回事件
 	EventTypeTaskWithdrawn EventType = "task_withdrawn"
 
+	// EventTypeTaskPaused 任务暂停事件
+	EventTypeTaskPaused EventType = "task_paused"
+
+	// EventTypeTaskResumed 任务恢复事件
+	EventTypeTaskResumed EventType = "task_resumed"
+
+	// EventTypeTaskRollback 任务回退事件
+	EventTypeTaskRollback EventType = "task_rollback"
+
+	// EventTypeApproverReplaced 审批人替换事件
+	EventTypeApproverReplaced EventType = "approver_replaced"
+
 	// EventTypeNodeCompleted 节点完成事件
 	EventTypeNodeCompleted EventType = "node_completed"
 )

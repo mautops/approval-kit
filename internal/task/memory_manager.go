@@ -159,6 +159,23 @@ func (m *memoryTaskManager) Submit(id string) error {
 	tsk.SubmittedAt = &now
 	tsk.UpdatedAt = now
 
+	// 生成节点激活事件(提交后当前节点被激活)
+	// 如果当前节点是 start,需要找到下一个节点并激活
+	if tsk.CurrentNode != "" {
+		if tpl, err := m.templateMgr.Get(tsk.TemplateID, 0); err == nil {
+			currentNode := tsk.CurrentNode
+			// 如果当前节点是 start,找到下一个节点
+			if node, exists := tpl.Nodes[currentNode]; exists && node.Type == template.NodeTypeStart {
+				// 查找从 start 节点出发的下一个节点
+				nextNodeID := findNextNode(tpl, currentNode)
+				if nextNodeID != "" {
+					// 更新当前节点为下一个节点
+					tsk.CurrentNode = nextNodeID
+				}
+			}
+		}
+	}
+
 	// 保存更新后的任务
 	m.tasks[id] = tsk
 
@@ -166,25 +183,10 @@ func (m *memoryTaskManager) Submit(id string) error {
 	if m.eventNotifier != nil {
 		m.generateEvent(event.EventTypeTaskSubmitted, tsk, nil, nil)
 		
-		// 生成节点激活事件(提交后当前节点被激活)
-		// 如果当前节点是 start,需要找到下一个节点并激活
+		// 生成节点激活事件
 		if tsk.CurrentNode != "" {
 			if tpl, err := m.templateMgr.Get(tsk.TemplateID, 0); err == nil {
-				currentNode := tsk.CurrentNode
-				// 如果当前节点是 start,找到下一个节点
-				if node, exists := tpl.Nodes[currentNode]; exists && node.Type == template.NodeTypeStart {
-					// 查找从 start 节点出发的下一个节点
-					nextNodeID := findNextNode(tpl, currentNode)
-					if nextNodeID != "" {
-						if nextNode, exists := tpl.Nodes[nextNodeID]; exists {
-							// 更新当前节点为下一个节点
-							tsk.CurrentNode = nextNodeID
-							// 生成下一个节点的激活事件
-							m.generateEvent(event.EventTypeNodeActivated, tsk, nextNode, nil)
-						}
-					}
-				} else if node, exists := tpl.Nodes[currentNode]; exists {
-					// 当前节点不是 start,直接生成激活事件
+				if node, exists := tpl.Nodes[tsk.CurrentNode]; exists {
 					m.generateEvent(event.EventTypeNodeActivated, tsk, node, nil)
 				}
 			}
@@ -819,6 +821,407 @@ func (m *memoryTaskManager) HandleTimeout(id string) error {
 	// 生成超时事件
 	if m.eventNotifier != nil {
 		m.generateEvent(event.EventTypeTaskTimeout, tsk, nil, nil)
+	}
+
+	return nil
+}
+
+// Pause 暂停任务
+// 只有 pending、submitted、approving 状态可以暂停
+// 暂停时会记录暂停前的状态,用于恢复时恢复到正确状态
+func (m *memoryTaskManager) Pause(id string, reason string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// 获取任务
+	tsk, exists := m.tasks[id]
+	if !exists {
+		return fmt.Errorf("task %q not found", id)
+	}
+
+	// 检查当前状态是否允许暂停
+	currentState := tsk.GetState()
+	if !m.stateMachine.CanTransition(currentState, types.TaskStatePaused) {
+		return fmt.Errorf("cannot pause task in state %q", currentState)
+	}
+
+	// 记录暂停前的状态
+	pausedState := currentState
+
+	// 使用状态机执行状态转换
+	adapter := &taskAdapter{task: tsk}
+	newTask, err := m.stateMachine.Transition(adapter, types.TaskStatePaused, reason)
+	if err != nil {
+		return fmt.Errorf("state transition failed: %w", err)
+	}
+
+	// 更新任务对象
+	tsk = newTask.(*taskAdapter).task
+	tsk.UpdatedAt = time.Now()
+
+	// 设置暂停相关字段
+	now := time.Now()
+	tsk.PausedAt = &now
+	tsk.PausedState = pausedState
+
+	// 保存更新后的任务
+	m.tasks[id] = tsk
+
+	// 生成暂停事件
+	if m.eventNotifier != nil {
+		m.generateEvent(event.EventTypeTaskPaused, tsk, nil, nil)
+	}
+
+	return nil
+}
+
+// Resume 恢复任务
+// 只有 paused 状态可以恢复
+// 恢复时会恢复到暂停前的状态(pending、submitted 或 approving)
+func (m *memoryTaskManager) Resume(id string, reason string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// 获取任务
+	tsk, exists := m.tasks[id]
+	if !exists {
+		return fmt.Errorf("task %q not found", id)
+	}
+
+	// 检查当前状态是否是 paused
+	currentState := tsk.GetState()
+	if currentState != types.TaskStatePaused {
+		return fmt.Errorf("cannot resume task in state %q, only paused tasks can be resumed", currentState)
+	}
+
+	// 获取暂停前的状态
+	targetState := tsk.PausedState
+	if targetState == "" {
+		// 如果没有记录暂停前状态,默认恢复到 pending
+		targetState = types.TaskStatePending
+	}
+
+	// 验证恢复状态转换的合法性
+	if !m.stateMachine.CanTransition(types.TaskStatePaused, targetState) {
+		return fmt.Errorf("cannot resume task to state %q from paused state", targetState)
+	}
+
+	// 使用状态机执行状态转换
+	adapter := &taskAdapter{task: tsk}
+	newTask, err := m.stateMachine.Transition(adapter, targetState, reason)
+	if err != nil {
+		return fmt.Errorf("state transition failed: %w", err)
+	}
+
+	// 更新任务对象
+	tsk = newTask.(*taskAdapter).task
+	tsk.UpdatedAt = time.Now()
+
+	// 清除暂停相关字段
+	tsk.PausedAt = nil
+	tsk.PausedState = ""
+
+	// 保存更新后的任务
+	m.tasks[id] = tsk
+
+	// 生成恢复事件
+	if m.eventNotifier != nil {
+		m.generateEvent(event.EventTypeTaskResumed, tsk, nil, nil)
+	}
+
+	return nil
+}
+
+// RollbackToNode 回退到指定节点
+// 只能回退到已完成的节点
+// 回退时会清理回退节点之后的审批记录和状态
+func (m *memoryTaskManager) RollbackToNode(id string, nodeID string, reason string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// 获取任务
+	tsk, exists := m.tasks[id]
+	if !exists {
+		return fmt.Errorf("task %q not found", id)
+	}
+
+	// 获取模板
+	tpl, err := m.templateMgr.Get(tsk.TemplateID, tsk.TemplateVersion)
+	if err != nil {
+		return fmt.Errorf("failed to get template: %w", err)
+	}
+
+	// 验证节点存在
+	node, exists := tpl.Nodes[nodeID]
+	if !exists {
+		return fmt.Errorf("node %q not found in template", nodeID)
+	}
+
+	// 验证节点已完成
+	completed := false
+	for _, completedNodeID := range tsk.CompletedNodes {
+		if completedNodeID == nodeID {
+			completed = true
+			break
+		}
+	}
+	if !completed {
+		return fmt.Errorf("node %q is not completed, cannot rollback", nodeID)
+	}
+
+	// 找到回退节点在已完成节点列表中的位置
+	rollbackIndex := -1
+	for i, completedNodeID := range tsk.CompletedNodes {
+		if completedNodeID == nodeID {
+			rollbackIndex = i
+			break
+		}
+	}
+	if rollbackIndex == -1 {
+		return fmt.Errorf("node %q is not in completed nodes list", nodeID)
+	}
+
+	// 构建需要保留的节点集合(回退节点及之前的节点)
+	keepNodes := make(map[string]bool)
+	for i := 0; i <= rollbackIndex; i++ {
+		keepNodes[tsk.CompletedNodes[i]] = true
+	}
+
+	// 清理回退节点之后的审批记录和状态
+	// 1. 移除回退节点之后的审批记录
+	var filteredRecords []*Record
+	for _, record := range tsk.Records {
+		if keepNodes[record.NodeID] {
+			filteredRecords = append(filteredRecords, record)
+		}
+	}
+	tsk.Records = filteredRecords
+
+	// 2. 清除回退节点之后的节点输出数据
+	newNodeOutputs := make(map[string]json.RawMessage)
+	for k, v := range tsk.NodeOutputs {
+		if keepNodes[k] {
+			newNodeOutputs[k] = v
+		}
+	}
+	tsk.NodeOutputs = newNodeOutputs
+
+	// 3. 清除回退节点之后的审批人列表和审批结果
+	newApprovers := make(map[string][]string)
+	newApprovals := make(map[string]map[string]*Approval)
+	for k, v := range tsk.Approvers {
+		if keepNodes[k] {
+			newApprovers[k] = v
+			if approvals, exists := tsk.Approvals[k]; exists {
+				newApprovals[k] = approvals
+			}
+		}
+	}
+	tsk.Approvers = newApprovers
+	tsk.Approvals = newApprovals
+
+	// 4. 更新当前节点为回退的目标节点
+	tsk.CurrentNode = nodeID
+
+	// 5. 更新已完成节点列表,移除回退节点之后的节点
+	tsk.CompletedNodes = tsk.CompletedNodes[:rollbackIndex+1]
+
+	// 6. 更新任务状态
+	// 根据回退的节点类型确定新的状态
+	// 如果是审批节点,状态应该是 approving
+	// 如果是开始节点,状态应该是 pending
+	// 如果是条件节点,状态应该是 approving
+	var targetState types.TaskState
+	switch node.Type {
+	case template.NodeTypeStart:
+		targetState = types.TaskStatePending
+	case template.NodeTypeApproval:
+		targetState = types.TaskStateApproving
+	case template.NodeTypeCondition:
+		targetState = types.TaskStateApproving
+	case template.NodeTypeEnd:
+		// 不应该回退到结束节点
+		return fmt.Errorf("cannot rollback to end node")
+	default:
+		targetState = types.TaskStateApproving
+	}
+
+	// 更新任务状态
+	// 回退操作允许从终态回退,所以需要特殊处理
+	currentState := tsk.GetState()
+	
+	// 如果当前是终态(approved/rejected/cancelled/timeout),允许回退
+	// 这种情况下不通过状态机,直接设置状态
+	if currentState == types.TaskStateApproved || 
+	   currentState == types.TaskStateRejected || 
+	   currentState == types.TaskStateCancelled || 
+	   currentState == types.TaskStateTimeout {
+		// 直接设置状态,不通过状态机
+		tsk.SetState(targetState)
+		tsk.UpdatedAt = time.Now()
+		
+		// 记录状态变更历史
+		tsk.AddStateChangeRecord(currentState, targetState, reason, time.Now())
+	} else {
+		// 非终态,使用状态机执行状态转换
+		if !m.stateMachine.CanTransition(currentState, targetState) {
+			return fmt.Errorf("cannot rollback from state %q to state %q", currentState, targetState)
+		}
+		
+		adapter := &taskAdapter{task: tsk}
+		newTask, err := m.stateMachine.Transition(adapter, targetState, reason)
+		if err != nil {
+			return fmt.Errorf("state transition failed: %w", err)
+		}
+		
+		// 更新任务对象
+		tsk = newTask.(*taskAdapter).task
+		tsk.UpdatedAt = time.Now()
+	}
+
+	// 保存更新后的任务
+	m.tasks[id] = tsk
+
+	// 生成回退事件
+	if m.eventNotifier != nil {
+		m.generateEvent(event.EventTypeTaskRollback, tsk, nil, nil)
+	}
+
+	return nil
+}
+
+// ReplaceApprover 替换审批人
+// 只能替换尚未审批的审批人
+// 替换后会保留原审批人的审批记录(如果有),新审批人可以继续审批
+func (m *memoryTaskManager) ReplaceApprover(id string, nodeID string, oldApprover string, newApprover string, reason string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// 1. 获取任务
+	tsk, exists := m.tasks[id]
+	if !exists {
+		return fmt.Errorf("task %q not found", id)
+	}
+
+	// 2. 获取模板
+	tpl, err := m.templateMgr.Get(tsk.TemplateID, 0)
+	if err != nil {
+		return fmt.Errorf("failed to get template %q: %w", tsk.TemplateID, err)
+	}
+
+	// 3. 获取节点配置
+	node, exists := tpl.Nodes[nodeID]
+	if !exists {
+		return fmt.Errorf("node %q not found in template", nodeID)
+	}
+
+	// 4. 检查节点类型是否为审批节点
+	if node.Type != template.NodeTypeApproval {
+		return fmt.Errorf("node %q is not an approval node", nodeID)
+	}
+
+	// 5. 检查节点是否已激活(当前节点或已完成节点)
+	tsk.mu.Lock()
+	nodeActivated := false
+	if tsk.CurrentNode == nodeID {
+		nodeActivated = true
+	} else {
+		// 检查节点是否在已完成节点列表中
+		for _, completedNodeID := range tsk.CompletedNodes {
+			if completedNodeID == nodeID {
+				nodeActivated = true
+				break
+			}
+		}
+	}
+	if !nodeActivated {
+		tsk.mu.Unlock()
+		return fmt.Errorf("node %q is not activated (current node: %q)", nodeID, tsk.CurrentNode)
+	}
+
+	// 6. 检查原审批人是否在审批人列表中
+	approvers, exists := tsk.Approvers[nodeID]
+	if !exists {
+		tsk.mu.Unlock()
+		return fmt.Errorf("approvers not found for node %q", nodeID)
+	}
+
+	found := false
+	for _, approver := range approvers {
+		if approver == oldApprover {
+			found = true
+			break
+		}
+	}
+	if !found {
+		tsk.mu.Unlock()
+		return fmt.Errorf("user %q is not an approver for node %q", oldApprover, nodeID)
+	}
+
+	// 7. 检查原审批人是否尚未审批
+	if tsk.Approvals != nil && tsk.Approvals[nodeID] != nil {
+		if approval, exists := tsk.Approvals[nodeID][oldApprover]; exists && approval != nil {
+			tsk.mu.Unlock()
+			return fmt.Errorf("user %q has already approved, cannot replace", oldApprover)
+		}
+	}
+
+	// 8. 替换审批人(移除原审批人,添加新审批人)
+	newApprovers := make([]string, 0, len(approvers))
+	for _, approver := range approvers {
+		if approver != oldApprover {
+			newApprovers = append(newApprovers, approver)
+		}
+	}
+	// 检查新审批人是否已在列表中
+	newApproverExists := false
+	for _, approver := range newApprovers {
+		if approver == newApprover {
+			newApproverExists = true
+			break
+		}
+	}
+	if !newApproverExists {
+		newApprovers = append(newApprovers, newApprover)
+	}
+	tsk.Approvers[nodeID] = newApprovers
+
+	// 9. 生成替换审批人记录
+	record := &Record{
+		ID:          generateRecordID(),
+		TaskID:      id,
+		NodeID:      nodeID,
+		Approver:    oldApprover,
+		Result:      "replace",
+		Comment:     reason,
+		CreatedAt:   time.Now(),
+		Attachments: []string{},
+	}
+
+	// 验证记录
+	if err := record.Validate(); err != nil {
+		tsk.mu.Unlock()
+		return fmt.Errorf("invalid record: %w", err)
+	}
+
+	// 添加到记录列表
+	tsk.Records = append(tsk.Records, record)
+
+	// 10. 更新任务更新时间
+	tsk.UpdatedAt = time.Now()
+	tsk.mu.Unlock()
+
+	// 11. 保存更新后的任务
+	m.tasks[id] = tsk
+
+	// 12. 生成替换审批人事件
+	if m.eventNotifier != nil {
+		m.generateEvent(event.EventTypeApproverReplaced, tsk, node, &event.ApprovalInfo{
+			NodeID:   nodeID,
+			Approver: oldApprover,
+			Result:   "replace",
+			Comment:  reason,
+		})
 	}
 
 	return nil

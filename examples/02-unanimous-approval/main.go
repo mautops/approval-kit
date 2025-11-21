@@ -129,7 +129,7 @@ func runScenario(taskMgr task.TaskManager, tsk *task.Task) {
 	if err != nil {
 		log.Fatalf("Failed to add manager approver: %v", err)
 	}
-	fmt.Println("✓ 审批人列表已设置: finance-001, purchase-001, manager-001\n")
+	fmt.Println("✓ 审批人列表已设置: finance-001, purchase-001, manager-001")
 
 	// 步骤 4: 执行多人会签审批
 	fmt.Println("步骤 4: 执行多人会签审批")

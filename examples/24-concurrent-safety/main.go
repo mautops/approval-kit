@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== 场景 24: 并发安全场景 ===\n")
+	fmt.Println("=== 场景 24: 并发安全场景 ===")
 
 	// 创建管理器
 	templateMgr := template.NewTemplateManager()

@@ -157,6 +157,21 @@ func (m *memoryTaskManager) Approve(id string, nodeID string, approver string, c
 			tsk = newTask.(*taskAdapter).task
 			tsk.mu.Lock()
 			tsk.UpdatedAt = time.Now()
+			// 节点完成,添加到已完成节点列表
+			if tsk.CompletedNodes == nil {
+				tsk.CompletedNodes = []string{}
+			}
+			// 检查节点是否已在列表中
+			found := false
+			for _, completedNodeID := range tsk.CompletedNodes {
+				if completedNodeID == nodeID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				tsk.CompletedNodes = append(tsk.CompletedNodes, nodeID)
+			}
 			tsk.mu.Unlock()
 			m.tasks[id] = tsk
 		}

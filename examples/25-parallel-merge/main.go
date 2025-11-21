@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== 场景 25: 多路径并行审批后汇聚场景 ===\n")
+	fmt.Println("=== 场景 25: 多路径并行审批后汇聚场景 ===")
 
 	// 创建管理器
 	templateMgr := template.NewTemplateManager()

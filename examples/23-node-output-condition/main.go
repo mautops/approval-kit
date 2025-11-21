@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== 场景 23: 基于节点输出的条件判断场景 ===\n")
+	fmt.Println("=== 场景 23: 基于节点输出的条件判断场景 ===")
 
 	// 创建管理器
 	templateMgr := template.NewTemplateManager()

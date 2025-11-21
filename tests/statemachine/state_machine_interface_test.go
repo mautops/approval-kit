@@ -68,10 +68,11 @@ func TestStateMachineGetValidTransitions(t *testing.T) {
 		{
 			name:      "pending state",
 			state:     task.TaskStatePending,
-			wantCount: 2,
+			wantCount: 3, // submitted, cancelled, paused
 			wantContains: []task.TaskState{
 				task.TaskStateSubmitted,
 				task.TaskStateCancelled,
+				task.TaskStatePaused,
 			},
 			wantNotContains: []task.TaskState{
 				task.TaskStateApproving,
@@ -81,11 +82,12 @@ func TestStateMachineGetValidTransitions(t *testing.T) {
 		{
 			name:      "submitted state",
 			state:     task.TaskStateSubmitted,
-			wantCount: 3, // approving, cancelled, pending (withdraw)
+			wantCount: 4, // approving, cancelled, pending (withdraw), paused
 			wantContains: []task.TaskState{
 				task.TaskStateApproving,
 				task.TaskStateCancelled,
 				task.TaskStatePending, // 撤回功能允许
+				task.TaskStatePaused,
 			},
 			wantNotContains: []task.TaskState{
 				task.TaskStateApproved,
@@ -94,13 +96,14 @@ func TestStateMachineGetValidTransitions(t *testing.T) {
 		{
 			name:      "approving state",
 			state:     task.TaskStateApproving,
-			wantCount: 5, // approved, rejected, cancelled, timeout, pending (withdraw)
+			wantCount: 6, // approved, rejected, cancelled, timeout, pending (withdraw), paused
 			wantContains: []task.TaskState{
 				task.TaskStateApproved,
 				task.TaskStateRejected,
 				task.TaskStateCancelled,
 				task.TaskStateTimeout,
 				task.TaskStatePending, // 撤回功能允许
+				task.TaskStatePaused,
 			},
 			wantNotContains: []task.TaskState{
 				task.TaskStateSubmitted,
@@ -148,6 +151,22 @@ func TestStateMachineGetValidTransitions(t *testing.T) {
 				task.TaskStatePending,
 				task.TaskStateSubmitted,
 				task.TaskStateApproving,
+			},
+		},
+		{
+			name:      "paused state",
+			state:     task.TaskStatePaused,
+			wantCount: 3, // pending, submitted, approving (恢复到暂停前的状态)
+			wantContains: []task.TaskState{
+				task.TaskStatePending,   // 恢复到暂停前的状态
+				task.TaskStateSubmitted,  // 恢复到暂停前的状态
+				task.TaskStateApproving,  // 恢复到暂停前的状态
+			},
+			wantNotContains: []task.TaskState{
+				task.TaskStateApproved,
+				task.TaskStateRejected,
+				task.TaskStateCancelled,
+				task.TaskStateTimeout,
 			},
 		},
 		{

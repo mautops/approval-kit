@@ -19,6 +19,7 @@ func (t *Task) Clone() *Task {
 		BusinessID:     t.BusinessID,
 		State:          t.State,
 		CurrentNode:    t.CurrentNode,
+		PausedState:    t.PausedState,
 		CreatedAt:      t.CreatedAt,
 		UpdatedAt:      t.UpdatedAt,
 	}
@@ -33,6 +34,12 @@ func (t *Task) Clone() *Task {
 	if t.SubmittedAt != nil {
 		submittedAt := *t.SubmittedAt
 		clone.SubmittedAt = &submittedAt
+	}
+
+	// 复制 PausedAt
+	if t.PausedAt != nil {
+		pausedAt := *t.PausedAt
+		clone.PausedAt = &pausedAt
 	}
 
 	// 复制 NodeOutputs
@@ -64,6 +71,10 @@ func (t *Task) Clone() *Task {
 		}
 		clone.Approvals[k] = approvals
 	}
+
+	// 复制 CompletedNodes
+	clone.CompletedNodes = make([]string, len(t.CompletedNodes))
+	copy(clone.CompletedNodes, t.CompletedNodes)
 
 	// 复制 Records
 	clone.Records = make([]*Record, len(t.Records))

@@ -58,6 +58,11 @@ func TestTaskStateConstants(t *testing.T) {
 			state:    task.TaskStateTimeout,
 			expected: "timeout",
 		},
+		{
+			name:     "paused state",
+			state:    task.TaskStatePaused,
+			expected: "paused",
+		},
 	}
 
 	for _, tt := range tests {
@@ -111,6 +116,11 @@ func TestTaskStateString(t *testing.T) {
 			state:    task.TaskStateTimeout,
 			expected: "timeout",
 		},
+		{
+			name:     "paused",
+			state:    task.TaskStatePaused,
+			expected: "paused",
+		},
 	}
 
 	for _, tt := range tests {
@@ -124,7 +134,7 @@ func TestTaskStateString(t *testing.T) {
 
 // TestTaskStateAllDefined 验证所有必需的状态都已定义
 func TestTaskStateAllDefined(t *testing.T) {
-	// 根据 PRD,应该有 7 个状态
+	// 根据 PRD,应该有 8 个状态
 	expectedStates := []task.TaskState{
 		task.TaskStatePending,
 		task.TaskStateSubmitted,
@@ -133,10 +143,11 @@ func TestTaskStateAllDefined(t *testing.T) {
 		task.TaskStateRejected,
 		task.TaskStateCancelled,
 		task.TaskStateTimeout,
+		task.TaskStatePaused,
 	}
 
-	if len(expectedStates) != 7 {
-		t.Errorf("期望 7 个状态,实际定义了 %d 个", len(expectedStates))
+	if len(expectedStates) != 8 {
+		t.Errorf("期望 8 个状态,实际定义了 %d 个", len(expectedStates))
 	}
 
 	// 验证每个状态都不是空值

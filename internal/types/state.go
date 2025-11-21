@@ -25,5 +25,8 @@ const (
 
 	// TaskStateTimeout 已超时: 任务审批超时
 	TaskStateTimeout TaskState = "timeout"
+
+	// TaskStatePaused 已暂停: 任务被暂停,可以稍后恢复
+	TaskStatePaused TaskState = "paused"
 )
 
