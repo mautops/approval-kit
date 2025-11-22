@@ -552,6 +552,7 @@ alwaysApply: true
   - [x] Refactor: 优化减签逻辑
 
 - [x] **17.6 操作权限控制** ✅
+
   - [x] Red: 编写权限控制测试
   - [x] Green: 实现 OperationPermissions 配置和验证
   - [x] Refactor: 优化权限控制逻辑
@@ -628,43 +629,193 @@ alwaysApply: true
   - [x] Green: 实现上下文缓存机制
   - [x] Refactor: 优化缓存性能
 
+## Phase 4: 公共 API 暴露 (P0)
+
+### 19. pkg 目录结构创建
+
+- [x] **19.1 pkg 目录结构创建** ✅
+
+  - [x] Red: 编写目录结构验证测试
+  - [x] Green: 创建 pkg 目录结构 (task/, template/, event/, statemachine/)
+  - [x] Refactor: 优化目录结构
+
+### 20. 任务相关公共 API 暴露
+
+- [x] **20.1 TaskManager 接口暴露** ✅
+
+  - [x] Red: 编写接口暴露测试
+  - [x] Green: 在 `pkg/task/manager.go` 中定义 TaskManager 接口,与 internal 保持一致
+  - [x] Refactor: 优化接口文档注释
+
+- [x] **20.2 Task 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/task/task.go` 中暴露 Task 类型,使用类型别名
+  - [x] Refactor: 优化类型转换逻辑
+
+- [x] **20.3 TaskFilter 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/task/filter.go` 中暴露 TaskFilter 类型
+  - [x] Refactor: 优化类型定义
+
+- [x] **20.4 Approval/Record/StateChange 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/task/types.go` 中暴露 Approval, Record, StateChange 类型
+  - [x] Refactor: 优化类型定义
+
+### 21. 模板相关公共 API 暴露
+
+- [x] **21.1 TemplateManager 接口暴露** ✅
+
+  - [x] Red: 编写接口暴露测试
+  - [x] Green: 在 `pkg/template/manager.go` 中定义 TemplateManager 接口
+  - [x] Refactor: 优化接口文档注释
+
+- [x] **21.2 Template 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/template/template.go` 中暴露 Template, TemplateConfig, WebhookConfig, AuthConfig 类型
+  - [x] Refactor: 优化类型定义
+
+- [x] **21.3 Node 类型和接口暴露** ✅
+
+  - [x] Red: 编写类型和接口暴露测试
+  - [x] Green: 在 `pkg/template/node.go` 中暴露 Node, NodeConfig, ApprovalNodeConfigAccessor, OperationPermissionsAccessor
+  - [x] Refactor: 优化接口定义
+
+- [x] **21.4 Edge 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/template/edge.go` 中暴露 Edge 类型
+  - [x] Refactor: 优化类型定义
+
+- [x] **21.5 NodeType 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/template/node_type.go` 中暴露 NodeType 类型和常量
+  - [x] Refactor: 优化类型定义
+
+### 22. 事件相关公共 API 暴露
+
+- [x] **22.1 EventHandler 接口暴露** ✅
+
+  - [x] Red: 编写接口暴露测试
+  - [x] Green: 在 `pkg/event/handler.go` 中定义 EventHandler 接口
+  - [x] Refactor: 优化接口文档注释
+
+- [x] **22.2 Event 类型暴露** ✅
+
+  - [x] Red: 编写类型暴露测试
+  - [x] Green: 在 `pkg/event/event.go` 中暴露 Event, EventType, TaskInfo, NodeInfo, ApprovalInfo, BusinessInfo 类型
+  - [x] Refactor: 优化类型定义
+
+### 23. 状态机相关公共 API 暴露
+
+- [x] **23.1 StateMachine 接口暴露** ✅
+
+  - [x] Red: 编写接口暴露测试
+  - [x] Green: 在 `pkg/statemachine/fsm.go` 中定义 StateMachine 接口
+  - [x] Refactor: 优化接口文档注释
+
+- [x] **23.2 TransitionableTask 接口暴露** ✅
+
+  - [x] Red: 编写接口暴露测试
+  - [x] Green: 在 `pkg/statemachine/task_interface.go` 中定义 TransitionableTask 接口和 StateChange 类型
+  - [x] Refactor: 优化接口定义
+
+### 24. 类型转换和适配器
+
+- [ ] **24.1 类型转换函数实现** ⏳
+
+  - [ ] Red: 编写类型转换测试
+  - [ ] Green: 实现 internal 和 pkg 类型之间的转换函数
+  - [ ] Refactor: 优化转换逻辑
+
+- [ ] **24.2 适配器函数实现** ⏳
+
+  - [ ] Red: 编写适配器测试
+  - [ ] Green: 实现接口适配器,将 internal 实现适配为 pkg 接口
+  - [ ] Refactor: 优化适配器实现
+
+### 25. 文档和示例
+
+- [ ] **25.1 pkg API 文档** ⏳
+
+  - [ ] Red: 编写文档完整性测试
+  - [ ] Green: 为所有 pkg 公共 API 添加完整的文档注释
+  - [ ] Refactor: 优化文档内容
+
+- [ ] **25.2 使用示例** ⏳
+
+  - [ ] Red: 编写示例代码测试
+  - [ ] Green: 创建使用示例,展示如何使用 pkg 公共 API
+  - [ ] Refactor: 优化示例代码
+
+- [ ] **25.3 迁移指南** ⏳
+
+  - [ ] Red: 编写迁移指南
+  - [ ] Green: 创建迁移指南文档,说明如何从复制类型迁移到使用 pkg API
+  - [ ] Refactor: 优化迁移指南
+
+### 26. 兼容性验证
+
+- [ ] **26.1 接口兼容性测试** ⏳
+
+  - [ ] Red: 编写兼容性测试
+  - [ ] Green: 验证 pkg 接口与 internal 接口完全兼容
+  - [ ] Refactor: 修复兼容性问题
+
+- [ ] **26.2 类型兼容性测试** ⏳
+
+  - [ ] Red: 编写类型兼容性测试
+  - [ ] Green: 验证 pkg 类型与 internal 类型可以正确转换
+  - [ ] Refactor: 优化类型转换
+
+- [ ] **26.3 approval-gin 集成测试** ⏳
+
+  - [ ] Red: 编写集成测试
+  - [ ] Green: 验证 approval-gin 可以使用 pkg API 替代复制的类型
+  - [ ] Refactor: 优化集成方案
+
 ## 质量保证
 
-### 19. 测试覆盖率
+### 27. 测试覆盖率
 
-- [x] **19.1 单元测试覆盖率检查** ✅
+- [x] **27.1 单元测试覆盖率检查** ✅
 
   - [x] 运行测试覆盖率检查 (已解决循环依赖问题,核心代码编译通过)
   - [x] 确保关键路径 100% 覆盖 (状态机关键路径已 100% 覆盖: CanTransition/GetValidTransitions/Transition 均为 100%)
   - [x] 确保整体覆盖率不低于 80% (当前覆盖率 80.2%,已达标)
 
-- [x] **19.2 集成测试补充** ✅ (进行中)
+- [x] **27.2 集成测试补充** ✅ (进行中)
 
   - [x] 编写核心流程集成测试 (已添加撤回流程和拒绝后跳转流程测试)
   - [ ] 验证端到端场景
   - [ ] 确保所有集成测试通过
 
-- [x] **19.3 并发安全测试** ✅
+- [x] **27.3 并发安全测试** ✅
 
   - [x] 使用 go test -race 运行所有测试 (已运行,未发现 race condition)
   - [x] 修复所有并发安全问题 (已修复 Reject 方法中的死锁问题)
   - [x] 确保并发测试通过 (所有并发测试通过)
 
-### 20. 代码质量
+### 28. 代码质量
 
-- [x] **20.1 代码规范检查** ✅
+- [x] **28.1 代码规范检查** ✅
 
   - [x] 运行 go vet 检查 (已运行,未发现问题)
   - [ ] 运行 golangci-lint 检查 (golangci-lint 未安装,可选)
   - [x] 修复所有代码规范问题 (go vet 检查通过)
 
-- [ ] **20.2 文档完整性**
+- [ ] **28.2 文档完整性**
 
   - [ ] 检查所有公共 API 文档注释
   - [ ] 添加使用示例代码
   - [ ] 更新 README 文档
 
-- [ ] **20.3 性能基准测试**
+- [ ] **28.3 性能基准测试**
   - [ ] 编写关键路径基准测试
   - [ ] 运行基准测试
   - [ ] 记录性能指标

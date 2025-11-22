@@ -20,6 +20,11 @@ func TestProjectStructure(t *testing.T) {
 		"tests/node",
 		"tests/event",
 		"examples",
+		"pkg/task",
+		"pkg/template",
+		"pkg/event",
+		"pkg/statemachine",
+		"pkg/types",
 	}
 
 	requiredFiles := []string{

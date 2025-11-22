@@ -1715,10 +1715,173 @@ type ConditionEvaluator interface {
 - **过度设计**: 严格遵循 YAGNI 原则,避免过早优化
 - **接口变更**: 遵循语义化版本控制,保证向后兼容
 
-## 18. 后续优化方向
+## 18. 公共 API 暴露 (pkg 目录)
+
+### 18.1 背景和需求
+
+由于 Go 语言的 `internal` 包限制,`internal` 目录下的包只能被同一模块内的包导入,不能被外部模块导入.这导致 `approval-gin` 等外部项目无法直接使用 `approval-kit` 的 `internal` 包中的接口和类型.
+
+为了解决这个问题,需要将 `internal` 包中需要被外部使用的接口和类型暴露到 `pkg` 目录下.`pkg` 目录是 Go 社区约定用于暴露公共 API 的目录,可以被外部模块导入.
+
+### 18.2 需要暴露的内容
+
+根据 `approval-gin` 的使用情况,需要暴露以下内容:
+
+#### 18.2.1 接口 (Interfaces)
+
+- **TaskManager**: 任务管理接口 (`internal/task/manager.go`)
+  - 包含所有任务操作方法: Create, Get, Submit, Approve, Reject, Cancel, Withdraw, Transfer, AddApprover, RemoveApprover, Pause, Resume, RollbackToNode, ReplaceApprover, HandleTimeout, Query
+
+- **TemplateManager**: 模板管理接口 (`internal/template/manager.go`)
+  - 包含模板管理操作: Create, Update, Get, Delete, ListVersions
+
+- **EventHandler**: 事件处理器接口 (`internal/event/handler.go`)
+  - 用于处理审批流程中的事件通知
+
+- **StateMachine**: 状态机接口 (`internal/statemachine/fsm.go`)
+  - 管理审批任务的状态流转: CanTransition, Transition, GetValidTransitions
+
+- **TransitionableTask**: 状态转换任务接口 (`internal/statemachine/task_interface.go`)
+  - 定义状态转换所需的任务接口: GetState, SetState, GetUpdatedAt, SetUpdatedAt, GetStateHistory, AddStateChange, Clone
+
+- **NodeConfig**: 节点配置接口 (`internal/template/node.go`)
+  - 节点配置的基础接口: NodeType, Validate
+
+- **ApprovalNodeConfigAccessor**: 审批节点配置访问接口 (`internal/template/node.go`)
+  - 用于访问审批节点配置的属性: RequireComment, RequireAttachments, GetTimeout, GetPermissions, GetRejectBehavior, GetRejectTargetNode
+
+- **OperationPermissionsAccessor**: 操作权限访问接口 (`internal/template/node.go`)
+  - 用于访问操作权限配置: AllowTransfer, AllowAddApprover, AllowRemoveApprover
+
+#### 18.2.2 类型 (Types)
+
+**任务相关类型**:
+- **Task**: 审批任务实例 (`internal/task/task.go`)
+- **TaskState**: 任务状态类型和常量 (`internal/types/state.go` - 已在 `pkg/types` 中)
+- **TaskFilter**: 任务查询过滤器 (`internal/task/filter.go`)
+- **Approval**: 审批结果 (`internal/task/task.go`)
+- **Record**: 审批记录 (`internal/task/task.go`)
+- **StateChange**: 状态变更记录 (`internal/task/task.go` 和 `internal/statemachine/task_interface.go`)
+
+**模板相关类型**:
+- **Template**: 审批模板 (`internal/template/template.go`)
+- **Node**: 审批节点 (`internal/template/node.go`)
+- **Edge**: 节点间的连接 (`internal/template/edge.go`)
+- **NodeType**: 节点类型和常量 (`internal/template/node_type.go`)
+- **TemplateConfig**: 模板全局配置 (`internal/template/template.go`)
+- **WebhookConfig**: Webhook 配置 (`internal/template/template.go`)
+- **AuthConfig**: 认证配置 (`internal/template/template.go`)
+
+**事件相关类型**:
+- **Event**: 事件定义 (`internal/event/event.go`)
+- **EventType**: 事件类型和常量 (`internal/event/event.go`)
+- **TaskInfo**: 任务信息 (`internal/event/event.go`)
+- **NodeInfo**: 节点信息 (`internal/event/event.go`)
+- **ApprovalInfo**: 审批信息 (`internal/event/event.go`)
+- **BusinessInfo**: 业务信息 (`internal/event/event.go`)
+
+### 18.3 pkg 目录结构设计
+
+```
+pkg/
+├── task/                    # 任务相关公共 API
+│   ├── manager.go          # TaskManager 接口
+│   ├── task.go             # Task 类型
+│   ├── filter.go           # TaskFilter 类型
+│   └── types.go            # Approval, Record, StateChange 类型
+├── template/               # 模板相关公共 API
+│   ├── manager.go          # TemplateManager 接口
+│   ├── template.go         # Template, TemplateConfig, WebhookConfig, AuthConfig 类型
+│   ├── node.go             # Node, NodeConfig, ApprovalNodeConfigAccessor, OperationPermissionsAccessor 接口
+│   ├── edge.go             # Edge 类型
+│   └── node_type.go        # NodeType 类型和常量
+├── event/                  # 事件相关公共 API
+│   ├── handler.go          # EventHandler 接口
+│   └── event.go            # Event, EventType, TaskInfo, NodeInfo, ApprovalInfo, BusinessInfo 类型
+├── statemachine/           # 状态机相关公共 API
+│   ├── fsm.go              # StateMachine 接口
+│   └── task_interface.go   # TransitionableTask 接口和 StateChange 类型
+└── types/                  # 基础类型 (已存在)
+    └── state.go            # TaskState 类型和常量
+```
+
+### 18.4 实现策略
+
+#### 18.4.1 类型别名策略
+
+为了避免代码重复和维护成本,采用类型别名策略:
+
+1. **接口**: 在 `pkg` 目录中重新定义接口,与 `internal` 中的接口保持一致
+2. **类型**: 对于结构体类型,在 `pkg` 目录中定义相同的类型,通过类型转换与 `internal` 类型互操作
+3. **常量**: 在 `pkg` 目录中重新定义常量,确保值一致
+
+#### 18.4.2 适配器模式
+
+对于需要将 `internal` 类型转换为 `pkg` 类型的场景,使用适配器函数:
+
+```go
+// pkg/task/task.go
+package task
+
+import (
+    internalTask "github.com/mautops/approval-kit/internal/task"
+)
+
+// Task 表示审批任务实例
+// 与 internal/task.Task 结构相同,但位于 pkg 目录,可以被外部导入
+type Task = internalTask.Task
+
+// ToInternal 将 pkg.Task 转换为 internal.Task
+func ToInternal(t *Task) *internalTask.Task {
+    return (*internalTask.Task)(t)
+}
+
+// FromInternal 将 internal.Task 转换为 pkg.Task
+func FromInternal(t *internalTask.Task) *Task {
+    return (*Task)(t)
+}
+```
+
+#### 18.4.3 接口实现
+
+对于接口,需要在 `pkg` 目录中重新定义,确保与 `internal` 中的接口定义完全一致:
+
+```go
+// pkg/task/manager.go
+package task
+
+import "encoding/json"
+
+// TaskManager 任务管理接口
+// 与 internal/task.TaskManager 接口定义完全一致
+type TaskManager interface {
+    Create(templateID string, businessID string, params json.RawMessage) (*Task, error)
+    Get(id string) (*Task, error)
+    Submit(id string) error
+    // ... 其他方法
+}
+```
+
+### 18.5 兼容性保证
+
+1. **接口稳定性**: `pkg` 目录中的接口必须保持稳定,遵循语义化版本控制
+2. **类型一致性**: `pkg` 目录中的类型必须与 `internal` 目录中的类型保持一致
+3. **向后兼容**: 新版本必须保持向后兼容,不能破坏现有 API
+
+### 18.6 文档要求
+
+所有 `pkg` 目录下的公共 API 必须包含完整的文档注释:
+
+- 接口用途说明
+- 方法参数和返回值说明
+- 使用示例
+- 注意事项和最佳实践
+
+## 19. 后续优化方向
 
 1. 支持更复杂的条件表达式
 2. 支持并行网关和排他网关
 3. 支持子流程
 4. 支持任务暂停和恢复
 5. 性能基准测试和优化
+6. 完善 pkg 目录的公共 API 暴露

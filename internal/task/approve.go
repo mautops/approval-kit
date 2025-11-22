@@ -2,6 +2,7 @@ package task
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/mautops/approval-kit/internal/errors"
@@ -635,13 +636,15 @@ func (m *memoryTaskManager) RejectWithAttachments(id string, nodeID string, appr
 	return nil
 }
 
+// recordIDCounter 记录 ID 计数器,用于确保唯一性
+var recordIDCounter int64
+
 // generateRecordID 生成审批记录 ID
 // 使用时间戳和原子计数器确保唯一性
 func generateRecordID() string {
 	// 使用纳秒时间戳 + 原子计数器确保唯一性
 	// 即使在同一纳秒内多次调用也能保证唯一性
 	now := time.Now()
-	// 使用纳秒时间戳 + 微秒时间戳 + 纳秒部分的组合
-	// 这样可以确保即使在同一纳秒内多次调用也能生成不同的 ID
-	return fmt.Sprintf("record-%d-%d-%d", now.UnixNano(), now.UnixMicro(), now.Nanosecond()%1000)
+	counter := atomic.AddInt64(&recordIDCounter, 1)
+	return fmt.Sprintf("record-%d-%d", now.UnixNano(), counter)
 }
